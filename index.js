@@ -66,6 +66,52 @@ async function run() {
       res.send(result);
     });
 
+    // update a post
+    app.put("/update-post/:id", async (req, res) => {
+      const id = req.params.id;
+      const post = req.body;
+      console.log(post);
+      const {
+        thumbnail,
+        title,
+        description,
+        location,
+        category,
+        deadline,
+        volunteersNeed,
+      } = post;
+
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedUser = {
+        $set: {
+          thumbnail: thumbnail,
+          title: title,
+          description: description,
+          location: location,
+          category: category,
+          deadline: deadline,
+          volunteersNeed: volunteersNeed,
+        },
+      };
+
+      const result = await volunteerNeedCollection.updateOne(
+        filter,
+        updatedUser,
+        options
+      );
+      res.send(result);
+    });
+
+    // delete a post
+    app.delete("/volunteer-post/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log("delete this id from db", id);
+      const query = { _id: new ObjectId(id) };
+      const result = await volunteerNeedCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
