@@ -67,7 +67,7 @@ async function run() {
     });
 
     // update a post
-    app.put("/update-post/:id", async (req, res) => {
+    app.put("/volunteer-post/:id", async (req, res) => {
       const id = req.params.id;
       const post = req.body;
       console.log(post);
@@ -83,7 +83,7 @@ async function run() {
 
       const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
-      const updatedUser = {
+      const updatedPost = {
         $set: {
           thumbnail: thumbnail,
           title: title,
@@ -97,7 +97,7 @@ async function run() {
 
       const result = await volunteerNeedCollection.updateOne(
         filter,
-        updatedUser,
+        updatedPost,
         options
       );
       res.send(result);
