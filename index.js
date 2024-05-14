@@ -35,15 +35,32 @@ async function run() {
     const volunteerNeedCollection = client
       .db("volunteersDB")
       .collection("volunteerNeed");
+    const volunteerCollection = client
+      .db("volunteersDB")
+      .collection("volunteers");
 
-    // get all volunteer post
+    // get all volunteer posts
     app.get("/volunteers", async (req, res) => {
       const result = await volunteerNeedCollection.find().toArray();
       res.send(result);
     });
 
+    // get all volunteers
+    app.get("/volunteer-requests", async (req, res) => {
+      const result = await volunteerCollection.find().toArray();
+      res.send(result);
+    });
+
     // get certain volunteer post
     app.get("/volunteer-post/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await volunteerNeedCollection.findOne(query);
+      res.send(result);
+    });
+
+    // get certain volunteer post to be a volunteer
+    app.get("/be-volunteer/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await volunteerNeedCollection.findOne(query);
@@ -58,11 +75,28 @@ async function run() {
       res.send(result);
     });
 
+    // get certain volunteer by email
+    app.get("/volunteer-requests/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { volunteerEmail: email };
+      const result = await volunteerCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // create a volunteer post
     app.post("/volunteers", async (req, res) => {
       const volunteerPost = req.body;
       console.log("new volunteerPost", volunteerPost);
       const result = await volunteerNeedCollection.insertOne(volunteerPost);
+      res.send(result);
+    });
+
+    // create a volunteer
+    app.post("/volunteer-requests", async (req, res) => {
+      const volunteer = req.body;
+      console.log("new volunteer", volunteer);
+      const result = await volunteerCollection.insertOne(volunteer);
+      console.log(result);
       res.send(result);
     });
 
@@ -109,6 +143,15 @@ async function run() {
       console.log("delete this id from db", id);
       const query = { _id: new ObjectId(id) };
       const result = await volunteerNeedCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // delete a request
+    app.delete("/volunteer-requests/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log("delete this id from db", id);
+      const query = { _id: new ObjectId(id) };
+      const result = await volunteerCollection.deleteOne(query);
       res.send(result);
     });
 
