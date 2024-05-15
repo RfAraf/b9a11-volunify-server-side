@@ -101,17 +101,7 @@ async function run() {
     });
 
     // get all volunteer posts in volunteer need page
-    app.get("/volunteer-cards", logger, verifyToken, async (req, res) => {
-      const userEmail = req.user.email;
-      const queryEmail = req.query.email;
-
-      console.log("query email ->", queryEmail);
-      console.log("token owner email:", userEmail);
-
-      if (userEmail !== queryEmail) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
-
+    app.get("/volunteer-cards", async (req, res) => {
       const search = req.query.search;
       console.log("search", search);
       let query = {
