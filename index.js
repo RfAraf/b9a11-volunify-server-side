@@ -56,6 +56,12 @@ const verifyToken = (req, res, next) => {
   });
 };
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production" ? true : false,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+};
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -77,20 +83,16 @@ async function run() {
       });
       console.log(token);
 
-      res
-        .cookie("token", token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-        })
-        .send({ success: true });
+      res.cookie("token", token, cookieOptions).send({ success: true });
     });
 
     // clearing cookie
     app.post("/logout", async (req, res) => {
       const user = req.body;
       console.log("logout user", user);
-      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+      res
+        .clearCookie("token", { ...cookieOptions, maxAge: 0 })
+        .send({ success: true });
     });
 
     app.get("/volunteers", async (req, res) => {
