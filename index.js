@@ -118,9 +118,23 @@ async function run() {
       res.send(result);
     });
 
-    // get all volunteers
-    app.get("/volunteer-requests", async (req, res) => {
-      const result = await volunteerCollection.find().toArray();
+    // create a volunteer
+    app.post("/volunteer-requests", async (req, res) => {
+      const volunteer = req.body;
+      console.log("new volunteer", volunteer);
+      const result = await volunteerCollection.insertOne(volunteer);
+
+      // update volunteer need count in volunteerNeedCollection
+      const updateDoc = {
+        $inc: { volunteersNeed: -1 },
+      };
+
+      const query = { title: volunteer.title };
+      const updateVolunteers = await volunteerNeedCollection.updateOne(
+        query,
+        updateDoc
+      );
+      console.log(updateVolunteers);
       res.send(result);
     });
 
