@@ -91,8 +91,23 @@ async function run() {
     app.get("/volunteers", logger, verifyToken, async (req, res) => {
       console.log(req.query.email);
       console.log("token owner info:", req.user);
+      if (req.user.email !== req.query.email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
 
-      const result = await volunteerNeedCollection.find().toArray();
+      const search = req.query.search;
+      console.log(search);
+      let query = {
+        title: { $regex: search, $options: "i" },
+      };
+
+      const sort = req.query.sort;
+      let options = {};
+      if (sort) options = { sort: { deadline: sort === "asc" ? 1 : -1 } };
+
+      const result = await volunteerNeedCollection
+        .find(query, options)
+        .toArray();
       res.send(result);
     });
 
