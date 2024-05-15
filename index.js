@@ -9,7 +9,12 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://volunify-2c546.web.app",
+    "https://volunify-2c546.firebaseapp.com",
+  ],
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -63,7 +68,7 @@ async function run() {
       .db("volunteersDB")
       .collection("volunteers");
 
-    // auth related api
+    // creating token auth related api
     app.post("/jwt", logger, async (req, res) => {
       const user = req.body;
       console.log("user for token", user);
@@ -75,34 +80,18 @@ async function run() {
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false,
-          sameSite: "strict",
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
     });
 
-    // clear cookie
+    // clearing cookie
     app.post("/logout", async (req, res) => {
       const user = req.body;
       console.log("logout user", user);
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
-
-    // get all volunteer posts in home page
-    // app.get("/volunteer-cards", async (req, res) => {
-    //   const userEmail = req.user.email;
-    //   const queryEmail = req.query.email;
-
-    //   console.log("query email ->", queryEmail);
-    //   console.log("token owner email:", userEmail);
-
-    //   if (userEmail !== queryEmail) {
-    //     return res.status(403).send({ message: "forbidden access" });
-    //   }
-
-    //   const result = await volunteerNeedCollection.find().toArray();
-    //   res.send(result);
-    // });
 
     app.get("/volunteers", async (req, res) => {
       const result = await volunteerNeedCollection.find().toArray();
@@ -188,7 +177,6 @@ async function run() {
       const volunteer = req.body;
       console.log("new volunteer", volunteer);
       const result = await volunteerCollection.insertOne(volunteer);
-      console.log(result);
       res.send(result);
     });
 
