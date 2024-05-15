@@ -40,11 +40,11 @@ const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
   // no token available
   if (!token) {
-    return res.status(401).send({ message: "unauthorized access" });
+    return res.status(401).send({ message: "if there is no token" });
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).send({ message: "unauthorized access" });
+      return res.status(401).send({ message: "unauthorized to access" });
     }
     req.user = decoded;
     next();
@@ -70,12 +70,13 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "1h",
       });
+      console.log(token);
 
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: true,
-          sameSite: "none",
+          secure: false,
+          sameSite: "strict",
         })
         .send({ success: true });
     });
@@ -87,16 +88,41 @@ async function run() {
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
 
-    // get all volunteer posts
-    app.get("/volunteers", logger, verifyToken, async (req, res) => {
-      console.log(req.query.email);
-      console.log("token owner info:", req.user);
-      if (req.user.email !== req.query.email) {
+    // get all volunteer posts in home page
+    // app.get("/volunteer-cards", async (req, res) => {
+    //   const userEmail = req.user.email;
+    //   const queryEmail = req.query.email;
+
+    //   console.log("query email ->", queryEmail);
+    //   console.log("token owner email:", userEmail);
+
+    //   if (userEmail !== queryEmail) {
+    //     return res.status(403).send({ message: "forbidden access" });
+    //   }
+
+    //   const result = await volunteerNeedCollection.find().toArray();
+    //   res.send(result);
+    // });
+
+    app.get("/volunteers", async (req, res) => {
+      const result = await volunteerNeedCollection.find().toArray();
+      res.send(result);
+    });
+
+    // get all volunteer posts in volunteer need page
+    app.get("/volunteer-cards", logger, verifyToken, async (req, res) => {
+      const userEmail = req.user.email;
+      const queryEmail = req.query.email;
+
+      console.log("query email ->", queryEmail);
+      console.log("token owner email:", userEmail);
+
+      if (userEmail !== queryEmail) {
         return res.status(403).send({ message: "forbidden access" });
       }
 
       const search = req.query.search;
-      console.log(search);
+      console.log("search", search);
       let query = {
         title: { $regex: search, $options: "i" },
       };
